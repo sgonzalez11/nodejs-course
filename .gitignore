@@ -108,3 +108,6 @@ dist
 
 # WebStorm files
 .idea
+
+# folder with json data
+data/*
