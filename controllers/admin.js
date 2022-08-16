@@ -10,17 +10,12 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
     const title = req.body.title;
-    const imageUrl = req.body.imageUrl;
     const price = req.body.price;
     const description = req.body.description;
-    // Using Magic Method
-    req.user
-        .createProduct({
-            title: title,
-            price: price,
-            imageUrl: imageUrl,
-            description: description
-        })
+    const imageUrl = req.body.imageUrl;
+    const product = new Product(title, price, description, imageUrl);
+    product
+        .save()
         .then(result => {
             console.log('CREATED PRODUCT');
             res.redirect('/admin/products');
