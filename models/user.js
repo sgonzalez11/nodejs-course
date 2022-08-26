@@ -18,3 +18,5 @@ class User {
         return db.collection('users').findOne({_id: new mongodb.ObjectId(userId)});
     }
 }
+
+module.exports = User;
