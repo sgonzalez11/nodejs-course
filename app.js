@@ -22,7 +22,7 @@ app.use((req, res, next) => {
     // userId created with compass
     User.findById('63081ffd14c7678715667810')
         .then(user => {
-            req.user = user;
+            req.user = new User(user.username, user.email, user.cart, user._id);
             next();
         })
         .catch(err => console.log(err));
