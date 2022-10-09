@@ -1,4 +1,5 @@
 const Product = require('../models/products');
+const Order = require('../models/orders');
 
 exports.getProducts = (req, res, next) => {
     Product.find()
@@ -74,37 +75,32 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-    let fetchedCart;
     req.user
-        .getCart()
-        .then(cart => {
-            fetchedCart = cart;
-            return cart.getProducts()
-        })
-        .then(products => {
-            return req.user
-                .createOrder()
-                .then(order => {
-                    return order.addProducts(
-                        products.map(product => {
-                            product.orderItem = {quantity: product.cartItem.quantity};
-                            return product;
-                        }))
-                })
-                .catch(err => console.log(err));
+        .populate('cart.items.productId')
+        .then(user => {
+            const product = user.cart.items.map(i => {
+                return {quantity: i.quantity, product: {...i.productId._doc}};
+            });
+            const order = new Order({
+                user: {
+                    name: req.user.name,
+                    userId: req.user
+                },
+                products: product
+            });
+            return order.save();
         })
         .then(result => {
-            fetchedCart.setProducts(null);
+            req.user.clearCart();
         })
-        .then(result => {
+        .then(() => {
             res.redirect('/orders');
         })
         .catch(err => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
-    req.user
-        .getOrders({include: ['products']})
+    Order.find({'user.userId': req.user._id})
         .then(orders => {
             res.render('shop/orders', {
                 pageTitle: 'Your Orders',
@@ -113,5 +109,4 @@ exports.getOrders = (req, res, next) => {
             });
         })
         .catch(err => console.log(err));
-
 };
